@@ -1,3 +1,0 @@
-sql:
-  type: mysql
-  dsn: "user:password@tcp(host:port)/dbname?charset=utf8mb4"

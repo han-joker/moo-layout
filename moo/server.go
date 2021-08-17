@@ -8,7 +8,6 @@ type server struct {
 // 服务单例池
 var serverPool = map[string]*server{}
 
-
 // 单例工厂，标识于 Kind
 func Server(kind string) *server {
 	instance, exists := serverPool[kind]

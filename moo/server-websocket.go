@@ -7,11 +7,10 @@ import (
 	"net/http"
 )
 
-func (s *server) StartWebSocket () {
+func (s *server) StartWebSocket() {
 	http.HandleFunc("/", echo)
 	log.Fatal(http.ListenAndServe(conf.Instance().String("websocket.addr"), nil))
 }
-
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {

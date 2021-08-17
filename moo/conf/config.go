@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// 配置数据
 type config struct {
 	contents map[string]map[string]interface{}
 }
@@ -15,23 +16,36 @@ type config struct {
 // config 单例对象
 var instance *config
 
-const (
+var (
 	path = "./configs/" // 配置文件目录
 	ext  = ".json"
 	sep  = "."
 )
 
-func Instance() *config {
+// 配置对象单例工厂
+func Instance(options ...string) *config {
 	if instance == nil {
+		// 创建实例
 		instance = &config{
 			contents: map[string]map[string]interface{}{},
+		}
+		// 配置选项
+		for i, v := range options {
+			switch i {
+			case 0:
+				path = v
+			case 1:
+				ext = v
+			case 2:
+				sep = v
+			}
 		}
 	}
 	return instance
 }
 
 // Getter|Setter
-func (c *config) Bool(key string) bool {
+func (c config) Bool(key string) bool {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return false
@@ -43,7 +57,7 @@ func (c *config) Bool(key string) bool {
 	return value
 }
 
-func (c *config) String(key string) string {
+func (c config) String(key string) string {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return ""
@@ -55,7 +69,7 @@ func (c *config) String(key string) string {
 	return value
 }
 
-func (c *config) Int(key string) int {
+func (c config) Int(key string) int {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return 0
@@ -67,7 +81,7 @@ func (c *config) Int(key string) int {
 	return int(value)
 }
 
-func (c *config) Float64(key string) float64 {
+func (c config) Float64(key string) float64 {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return 0
@@ -78,19 +92,20 @@ func (c *config) Float64(key string) float64 {
 	}
 	return value
 }
-func (c *config) Float32(key string) float32 {
+
+func (c config) Float32(key string) float32 {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return 0
 	}
-	value, ok := valueIf.(float32)
+	value, ok := valueIf.(float64)
 	if !ok {
 		return 0
 	}
-	return value
+	return float32(value)
 }
 
-func (c *config) BoolSlice(key string) []bool {
+func (c config) BoolSlice(key string) []bool {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return []bool{}
@@ -101,8 +116,8 @@ func (c *config) BoolSlice(key string) []bool {
 		return []bool{}
 	}
 	value := make([]bool, len(sli))
-	for i, l := 0, len(sli); i < l; i++ {
-		v, ok := sli[i].(bool)
+	for i, vi := range sli {
+		v, ok := vi.(bool)
 		if ok {
 			value[i] = v
 		}
@@ -110,7 +125,7 @@ func (c *config) BoolSlice(key string) []bool {
 	return value
 }
 
-func (c *config) IntSlice(key string) []int {
+func (c config) IntSlice(key string) []int {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return []int{}
@@ -121,8 +136,8 @@ func (c *config) IntSlice(key string) []int {
 		return []int{}
 	}
 	value := make([]int, len(sli))
-	for i, l := 0, len(sli); i < l; i++ {
-		v, ok := sli[i].(float64)
+	for i, vi := range sli {
+		v, ok := vi.(float64)
 		if ok {
 			value[i] = int(v)
 		}
@@ -130,7 +145,7 @@ func (c *config) IntSlice(key string) []int {
 	return value
 }
 
-func (c *config) StringSlice(key string) []string {
+func (c config) StringSlice(key string) []string {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return []string{}
@@ -141,8 +156,8 @@ func (c *config) StringSlice(key string) []string {
 		return []string{}
 	}
 	value := make([]string, len(sli))
-	for i, l := 0, len(sli); i < l; i++ {
-		v, ok := sli[i].(string)
+	for i, vi := range sli {
+		v, ok := vi.(string)
 		if ok {
 			value[i] = v
 		}
@@ -150,7 +165,7 @@ func (c *config) StringSlice(key string) []string {
 	return value
 }
 
-func (c *config) Float64Slice(key string) []float64 {
+func (c config) Float64Slice(key string) []float64 {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return []float64{}
@@ -161,8 +176,8 @@ func (c *config) Float64Slice(key string) []float64 {
 		return []float64{}
 	}
 	value := make([]float64, len(sli))
-	for i, l := 0, len(sli); i < l; i++ {
-		v, ok := sli[i].(float64)
+	for i, vi := range sli {
+		v, ok := vi.(float64)
 		if ok {
 			value[i] = v
 		}
@@ -170,7 +185,7 @@ func (c *config) Float64Slice(key string) []float64 {
 	return value
 }
 
-func (c *config) Float32Slice(key string) []float32 {
+func (c config) Float32Slice(key string) []float32 {
 	valueIf, err := c.value(key)
 	if err != nil {
 		return []float32{}
@@ -181,10 +196,110 @@ func (c *config) Float32Slice(key string) []float32 {
 		return []float32{}
 	}
 	value := make([]float32, len(sli))
-	for i, l := 0, len(sli); i < l; i++ {
-		v, ok := sli[i].(float32)
+	for i, vi := range sli {
+		v, ok := vi.(float64)
 		if ok {
-			value[i] = v
+			value[i] = float32(v)
+		}
+	}
+	return value
+}
+
+func (c config) BoolMap(key string) map[string]bool {
+	valueIf, err := c.value(key)
+	if err != nil {
+		return map[string]bool{}
+	}
+	//
+	mp, ok := valueIf.(map[string]interface{})
+	if !ok {
+		return map[string]bool{}
+	}
+	value := map[string]bool{}
+	for k, vk := range mp {
+		v, ok := vk.(bool)
+		if ok {
+			value[k] = v
+		}
+	}
+	return value
+}
+
+func (c config) IntMap(key string) map[string]int {
+	valueIf, err := c.value(key)
+	if err != nil {
+		return map[string]int{}
+	}
+	//
+	mp, ok := valueIf.(map[string]interface{})
+	if !ok {
+		return map[string]int{}
+	}
+	value := map[string]int{}
+	for k, vk := range mp {
+		v, ok := vk.(float64)
+		if ok {
+			value[k] = int(v)
+		}
+	}
+	return value
+}
+
+func (c config) Float64Map(key string) map[string]float64 {
+	valueIf, err := c.value(key)
+	if err != nil {
+		return map[string]float64{}
+	}
+	//
+	mp, ok := valueIf.(map[string]interface{})
+	if !ok {
+		return map[string]float64{}
+	}
+	value := map[string]float64{}
+	for k, vk := range mp {
+		v, ok := vk.(float64)
+		if ok {
+			value[k] = v
+		}
+	}
+	return value
+}
+
+func (c config) Float32Map(key string) map[string]float32 {
+	valueIf, err := c.value(key)
+	if err != nil {
+		return map[string]float32{}
+	}
+	//
+	mp, ok := valueIf.(map[string]interface{})
+	if !ok {
+		return map[string]float32{}
+	}
+	value := map[string]float32{}
+	for k, vk := range mp {
+		v, ok := vk.(float64)
+		if ok {
+			value[k] = float32(v)
+		}
+	}
+	return value
+}
+
+func (c config) StringMap(key string) map[string]string {
+	valueIf, err := c.value(key)
+	if err != nil {
+		return map[string]string{}
+	}
+	//
+	mp, ok := valueIf.(map[string]interface{})
+	if !ok {
+		return map[string]string{}
+	}
+	value := map[string]string{}
+	for k, vk := range mp {
+		v, ok := vk.(string)
+		if ok {
+			value[k] = v
 		}
 	}
 	return value
@@ -192,13 +307,13 @@ func (c *config) Float32Slice(key string) []float32 {
 
 // 利用 key 获取 值
 func (c *config) value(key string) (interface{}, error) {
-	filename, keys := parseKey(key)
+	filename, keys := c.parseKey(key)
 	if data, exists := instance.contents[filename]; !exists {
 		var (
 			content = []byte{}
 			err     error
 		)
-		if content, err = os.ReadFile(path + filename + ext); err != nil {
+		if content, err = c.getContent(filename); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -206,7 +321,7 @@ func (c *config) value(key string) (interface{}, error) {
 			log.Println(err)
 			return nil, err
 		}
-		instance.contents[filename] = data
+		c.contents[filename] = data
 	}
 
 	// 解析
@@ -230,10 +345,16 @@ func (c *config) value(key string) (interface{}, error) {
 	return nil, nil
 }
 
-func parseKey(key string) (filename string, keys []string) {
+// 解析 key
+func (config) parseKey(key string) (string, []string) {
 	strs := strings.Split(key, sep)
+	if len(strs) == 1 {
+		strs = append([]string{"app"}, strs...)
+	}
 	return strs[0], strs[1:]
 }
-func getContent(filename string) ([]byte, error) {
-	return os.ReadFile(path + filename)
+
+// 读取配置文件
+func (config) getContent(filename string) ([]byte, error) {
+	return os.ReadFile(path + filename + ext)
 }
