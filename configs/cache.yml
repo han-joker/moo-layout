@@ -1,0 +1,3 @@
+cache:
+  type: redis
+  addr: localhost:6379
