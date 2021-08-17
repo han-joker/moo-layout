@@ -1,16 +1,23 @@
-package servers
+package moo
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/han-joker/moo-layout/moo/conf"
 	"log"
 	"net/http"
 )
+
+func (s *server) StartWebSocket () {
+	http.HandleFunc("/", echo)
+	log.Fatal(http.ListenAndServe(conf.Instance().String("websocket.addr"), nil))
+}
+
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
-} // use default options
+}
 
 func echo(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -32,11 +39,4 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-}
-
-func WebSocketStart() {
-
-	http.HandleFunc("/", echo)
-	var addr = "localhost:8080"
-	log.Fatal(http.ListenAndServe(addr, nil))
 }

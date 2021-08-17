@@ -1,3 +1,17 @@
 {
-  "addr": "9500"
+  "addr": ":9500",
+  "ad": {
+    "dr": ":9500"
+  },
+  "number": 42,
+  "intArray": [
+    1, 2, 3, 4
+  ],
+  "stringArray": [
+    "a", "b", "c"
+  ],
+  "deep1": {
+    "deep2": "str",
+    "deep3": [5, 6, 7, 8]
+  }
 }
