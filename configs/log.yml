@@ -1,0 +1,5 @@
+# format: text, json
+format: text
+# level: Trace, Debug, Info, Warning, Error, Fatal ,Panic
+# current or above
+level": info

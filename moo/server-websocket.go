@@ -8,8 +8,18 @@ import (
 )
 
 func (s *server) StartWebSocket() {
-	http.HandleFunc("/", echo)
-	log.Fatal(http.ListenAndServe(conf.Instance().String("websocket.addr"), nil))
+	log.Println(conf.Instance().Int("websocket.in"))
+	log.Println(conf.Instance().Float64("websocket.fl"))
+	log.Println(conf.Instance().Float32("websocket.fl"))
+	log.Println(conf.Instance().IntSlice("websocket.ia"))
+	log.Println(conf.Instance().Float32Slice("websocket.fa"))
+	log.Println(conf.Instance().StringSlice("websocket.sa"))
+	log.Println(conf.Instance().BoolMap("websocket.bm"))
+	log.Println(conf.Instance().IntMap("websocket.im"))
+	log.Println(conf.Instance().Float64Map("websocket.fm"))
+	log.Println(conf.Instance().String("websocket.addr"))
+	//http.HandleFunc("/", echo)
+	//log.Fatal(http.ListenAndServe(conf.Instance().String("websocket.addr"), nil))
 }
 
 var upgrader = websocket.Upgrader{

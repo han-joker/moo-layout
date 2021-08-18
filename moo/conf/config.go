@@ -1,10 +1,11 @@
 package conf
 
 import (
-	"encoding/json"
+	"gopkg.in/yaml.v3"
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ var instance *config
 
 var (
 	path = "./configs/" // 配置文件目录
-	ext  = ".json"
+	ext  = ".yml"
 	sep  = "."
 )
 
@@ -62,23 +63,20 @@ func (config) String(key string) string {
 	if err != nil {
 		return ""
 	}
-	value, ok := valueIf.(string)
-	if !ok {
-		return ""
-	}
-	return value
+	return assertString(valueIf)
 }
 
 func (config) Int(key string) int {
 	valueIf, err := instance.value(key)
 	if err != nil {
+		log.Println(err)
 		return 0
 	}
-	value, ok := valueIf.(float64)
+	value, ok := valueIf.(int)
 	if !ok {
 		return 0
 	}
-	return int(value)
+	return value
 }
 
 func (config) Float64(key string) float64 {
@@ -86,11 +84,7 @@ func (config) Float64(key string) float64 {
 	if err != nil {
 		return 0
 	}
-	value, ok := valueIf.(float64)
-	if !ok {
-		return 0
-	}
-	return value
+	return assertFloat64(valueIf)
 }
 
 func (config) Float32(key string) float32 {
@@ -98,11 +92,7 @@ func (config) Float32(key string) float32 {
 	if err != nil {
 		return 0
 	}
-	value, ok := valueIf.(float64)
-	if !ok {
-		return 0
-	}
-	return float32(value)
+	return assertFloat32(valueIf)
 }
 
 func (config) BoolSlice(key string) []bool {
@@ -137,9 +127,9 @@ func (config) IntSlice(key string) []int {
 	}
 	value := make([]int, len(sli))
 	for i, vi := range sli {
-		v, ok := vi.(float64)
+		v, ok := vi.(int)
 		if ok {
-			value[i] = int(v)
+			value[i] = v
 		}
 	}
 	return value
@@ -157,10 +147,7 @@ func (config) StringSlice(key string) []string {
 	}
 	value := make([]string, len(sli))
 	for i, vi := range sli {
-		v, ok := vi.(string)
-		if ok {
-			value[i] = v
-		}
+		value[i] = assertString(vi)
 	}
 	return value
 }
@@ -177,10 +164,7 @@ func (config) Float64Slice(key string) []float64 {
 	}
 	value := make([]float64, len(sli))
 	for i, vi := range sli {
-		v, ok := vi.(float64)
-		if ok {
-			value[i] = v
-		}
+		value[i] = assertFloat64(vi)
 	}
 	return value
 }
@@ -195,12 +179,10 @@ func (config) Float32Slice(key string) []float32 {
 	if !ok {
 		return []float32{}
 	}
+
 	value := make([]float32, len(sli))
 	for i, vi := range sli {
-		v, ok := vi.(float64)
-		if ok {
-			value[i] = float32(v)
-		}
+		value[i] = assertFloat32(vi)
 	}
 	return value
 }
@@ -217,6 +199,7 @@ func (config) BoolMap(key string) map[string]bool {
 	}
 	value := map[string]bool{}
 	for k, vk := range mp {
+		value[k] = false
 		v, ok := vk.(bool)
 		if ok {
 			value[k] = v
@@ -237,9 +220,10 @@ func (config) IntMap(key string) map[string]int {
 	}
 	value := map[string]int{}
 	for k, vk := range mp {
-		v, ok := vk.(float64)
+		value[k] = 0
+		v, ok := vk.(int)
 		if ok {
-			value[k] = int(v)
+			value[k] = v
 		}
 	}
 	return value
@@ -255,12 +239,10 @@ func (config) Float64Map(key string) map[string]float64 {
 	if !ok {
 		return map[string]float64{}
 	}
+
 	value := map[string]float64{}
 	for k, vk := range mp {
-		v, ok := vk.(float64)
-		if ok {
-			value[k] = v
-		}
+		value[k] = assertFloat64(vk)
 	}
 	return value
 }
@@ -275,12 +257,10 @@ func (config) Float32Map(key string) map[string]float32 {
 	if !ok {
 		return map[string]float32{}
 	}
+
 	value := map[string]float32{}
 	for k, vk := range mp {
-		v, ok := vk.(float64)
-		if ok {
-			value[k] = float32(v)
-		}
+		value[k] = assertFloat32(vk)
 	}
 	return value
 }
@@ -297,10 +277,7 @@ func (config) StringMap(key string) map[string]string {
 	}
 	value := map[string]string{}
 	for k, vk := range mp {
-		v, ok := vk.(string)
-		if ok {
-			value[k] = v
-		}
+		value[k] = assertString(vk)
 	}
 	return value
 }
@@ -317,7 +294,7 @@ func (config) value(key string) (interface{}, error) {
 			log.Println(err)
 			return nil, err
 		}
-		if err = json.Unmarshal(content, &data); err != nil {
+		if err = yaml.Unmarshal(content, &data); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -358,3 +335,47 @@ func (config) parseKey(key string) (string, []string) {
 func (config) getContent(filename string) ([]byte, error) {
 	return os.ReadFile(path + filename + ext)
 }
+
+// 断言 Interface{} to string
+func assertString(valueIf interface{}) (value string) {
+	switch v := valueIf.(type) {
+	case string:
+		value = v
+	case int:
+		value = strconv.FormatInt(int64(v), 10) // string(v)
+	case float64:
+		value = strconv.FormatFloat(v, 'f', -1, 64)
+	case float32:
+		value = strconv.FormatFloat(float64(v), 'f', -1, 64)
+	case bool:
+		value = strconv.FormatBool(v)
+	}
+	return
+}
+
+// 断言 Interface{} to float32
+func assertFloat32(valueIf interface{}) (value float32) {
+	switch v := valueIf.(type) {
+	case float64:
+		value = float32(v)
+	case float32:
+		value = v
+	case int:
+		value = float32(v)
+	}
+	return
+}
+
+// 断言 Interface{} to float64
+func assertFloat64(valueIf interface{}) (value float64) {
+	switch v := valueIf.(type) {
+	case float64:
+		value = v
+	case float32:
+		value = float64(v)
+	case int:
+		value = float64(v)
+	}
+	return
+}
+
