@@ -1,4 +1,4 @@
-package dft
+package dftm
 
 import "testing"
 

@@ -1,4 +1,4 @@
-package conf
+package confm
 
 import (
 	"testing"

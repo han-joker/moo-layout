@@ -1,4 +1,4 @@
-package dft
+package dftm
 
 func String(value, defValue string) string {
 	if value == "" {

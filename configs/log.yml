@@ -3,3 +3,5 @@ format: text
 # level: Trace, Debug, Info, Warning, Error, Fatal ,Panic
 # current or above
 level": info
+# caller: true, false
+caller: false
