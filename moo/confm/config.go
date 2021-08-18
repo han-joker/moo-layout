@@ -1,51 +1,72 @@
 package conf
 
 import (
-	"gopkg.in/yaml.v3"
 	"errors"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 )
 
-// 配置数据
+//类型定义
+//配置
 type config struct {
-	contents map[string]map[string]interface{}
+	//选项
+	options
+	//配置文件内容解码缓存
+	contents
 }
 
-// config 单例对象
+//配置内容
+type contents = map[string]map[string]interface{}
+
+//配置选项
+type options struct {
+	path string
+	ext  string
+	sep  string
+}
+
+//变量
+//config 单例对象
 var instance *config
 
-var (
-	path = "./configs/" // 配置文件目录
-	ext  = ".yml"
-	sep  = "."
-)
+//默认选项值
+var defaultOptions = options{
+	path: "./configs/",
+	ext:  ".yml",
+	sep:  ".",
+}
 
-// 配置对象单例工厂
+//常量
+
+//可导出包方法
+
+// Instance 配置对象单例工厂
 func Instance(options ...string) *config {
 	if instance == nil {
-		// 创建实例
+		//创建实例
 		instance = &config{
-			contents: map[string]map[string]interface{}{},
+			contents: contents{},
+			options: defaultOptions,
 		}
-		// 配置选项
+		//配置选项
 		for i, v := range options {
 			switch i {
 			case 0:
-				path = v
+				instance.options.path = v
 			case 1:
-				ext = v
+				instance.options.ext = v
 			case 2:
-				sep = v
+				instance.options.sep = v
 			}
 		}
 	}
 	return instance
 }
 
-// Getter|Setter
+// Bool Getter|Setter
 func (config) Bool(key string) bool {
 	valueIf, err := instance.value(key)
 	if err != nil {
@@ -282,7 +303,9 @@ func (config) StringMap(key string) map[string]string {
 	return value
 }
 
-// 利用 key 获取 值
+//非导出方法
+
+//利用 key 获取 值
 func (config) value(key string) (interface{}, error) {
 	filename, keys := instance.parseKey(key)
 	if data, exists := instance.contents[filename]; !exists {
@@ -301,9 +324,9 @@ func (config) value(key string) (interface{}, error) {
 		instance.contents[filename] = data
 	}
 
-	// 解析
+	//解析
 	for i, l, currLevel := 0, len(keys), instance.contents[filename]; i < l; i++ {
-		// 最后一级 key
+		//最后一级 key
 		if i == l-1 {
 			if value, exists := currLevel[keys[i]]; exists {
 				return value, nil
@@ -312,7 +335,7 @@ func (config) value(key string) (interface{}, error) {
 			}
 		}
 
-		// 不是最后一级，继续解析
+		//不是最后一级，继续解析
 		var exists bool
 		currLevel, exists = currLevel[keys[i]].(map[string]interface{})
 		if !exists {
@@ -322,27 +345,27 @@ func (config) value(key string) (interface{}, error) {
 	return nil, nil
 }
 
-// 解析 key
+//解析 key
 func (config) parseKey(key string) (string, []string) {
-	strs := strings.Split(key, sep)
+	strs := strings.Split(key, instance.options.sep)
 	if len(strs) == 1 {
 		strs = append([]string{"app"}, strs...)
 	}
 	return strs[0], strs[1:]
 }
 
-// 读取配置文件
+//读取配置文件
 func (config) getContent(filename string) ([]byte, error) {
-	return os.ReadFile(path + filename + ext)
+	return os.ReadFile(instance.options.path + filename + instance.options.ext)
 }
 
-// 断言 Interface{} to string
+//断言 Interface{} to string
 func assertString(valueIf interface{}) (value string) {
 	switch v := valueIf.(type) {
 	case string:
 		value = v
 	case int:
-		value = strconv.FormatInt(int64(v), 10) // string(v)
+		value = strconv.FormatInt(int64(v), 10) //string(v)
 	case float64:
 		value = strconv.FormatFloat(v, 'f', -1, 64)
 	case float32:
@@ -353,7 +376,7 @@ func assertString(valueIf interface{}) (value string) {
 	return
 }
 
-// 断言 Interface{} to float32
+//断言 Interface{} to float32
 func assertFloat32(valueIf interface{}) (value float32) {
 	switch v := valueIf.(type) {
 	case float64:
@@ -366,7 +389,7 @@ func assertFloat32(valueIf interface{}) (value float32) {
 	return
 }
 
-// 断言 Interface{} to float64
+//断言 Interface{} to float64
 func assertFloat64(valueIf interface{}) (value float64) {
 	switch v := valueIf.(type) {
 	case float64:
@@ -378,4 +401,3 @@ func assertFloat64(valueIf interface{}) (value float64) {
 	}
 	return
 }
-
