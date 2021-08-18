@@ -45,8 +45,8 @@ func Instance(options ...string) *config {
 }
 
 // Getter|Setter
-func (c config) Bool(key string) bool {
-	valueIf, err := c.value(key)
+func (config) Bool(key string) bool {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return false
 	}
@@ -57,8 +57,8 @@ func (c config) Bool(key string) bool {
 	return value
 }
 
-func (c config) String(key string) string {
-	valueIf, err := c.value(key)
+func (config) String(key string) string {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return ""
 	}
@@ -69,8 +69,8 @@ func (c config) String(key string) string {
 	return value
 }
 
-func (c config) Int(key string) int {
-	valueIf, err := c.value(key)
+func (config) Int(key string) int {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return 0
 	}
@@ -81,8 +81,8 @@ func (c config) Int(key string) int {
 	return int(value)
 }
 
-func (c config) Float64(key string) float64 {
-	valueIf, err := c.value(key)
+func (config) Float64(key string) float64 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return 0
 	}
@@ -93,8 +93,8 @@ func (c config) Float64(key string) float64 {
 	return value
 }
 
-func (c config) Float32(key string) float32 {
-	valueIf, err := c.value(key)
+func (config) Float32(key string) float32 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return 0
 	}
@@ -105,8 +105,8 @@ func (c config) Float32(key string) float32 {
 	return float32(value)
 }
 
-func (c config) BoolSlice(key string) []bool {
-	valueIf, err := c.value(key)
+func (config) BoolSlice(key string) []bool {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return []bool{}
 	}
@@ -125,8 +125,8 @@ func (c config) BoolSlice(key string) []bool {
 	return value
 }
 
-func (c config) IntSlice(key string) []int {
-	valueIf, err := c.value(key)
+func (config) IntSlice(key string) []int {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return []int{}
 	}
@@ -145,8 +145,8 @@ func (c config) IntSlice(key string) []int {
 	return value
 }
 
-func (c config) StringSlice(key string) []string {
-	valueIf, err := c.value(key)
+func (config) StringSlice(key string) []string {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return []string{}
 	}
@@ -165,8 +165,8 @@ func (c config) StringSlice(key string) []string {
 	return value
 }
 
-func (c config) Float64Slice(key string) []float64 {
-	valueIf, err := c.value(key)
+func (config) Float64Slice(key string) []float64 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return []float64{}
 	}
@@ -185,8 +185,8 @@ func (c config) Float64Slice(key string) []float64 {
 	return value
 }
 
-func (c config) Float32Slice(key string) []float32 {
-	valueIf, err := c.value(key)
+func (config) Float32Slice(key string) []float32 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return []float32{}
 	}
@@ -205,8 +205,8 @@ func (c config) Float32Slice(key string) []float32 {
 	return value
 }
 
-func (c config) BoolMap(key string) map[string]bool {
-	valueIf, err := c.value(key)
+func (config) BoolMap(key string) map[string]bool {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return map[string]bool{}
 	}
@@ -225,8 +225,8 @@ func (c config) BoolMap(key string) map[string]bool {
 	return value
 }
 
-func (c config) IntMap(key string) map[string]int {
-	valueIf, err := c.value(key)
+func (config) IntMap(key string) map[string]int {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return map[string]int{}
 	}
@@ -245,8 +245,8 @@ func (c config) IntMap(key string) map[string]int {
 	return value
 }
 
-func (c config) Float64Map(key string) map[string]float64 {
-	valueIf, err := c.value(key)
+func (config) Float64Map(key string) map[string]float64 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return map[string]float64{}
 	}
@@ -265,8 +265,8 @@ func (c config) Float64Map(key string) map[string]float64 {
 	return value
 }
 
-func (c config) Float32Map(key string) map[string]float32 {
-	valueIf, err := c.value(key)
+func (config) Float32Map(key string) map[string]float32 {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return map[string]float32{}
 	}
@@ -285,8 +285,8 @@ func (c config) Float32Map(key string) map[string]float32 {
 	return value
 }
 
-func (c config) StringMap(key string) map[string]string {
-	valueIf, err := c.value(key)
+func (config) StringMap(key string) map[string]string {
+	valueIf, err := instance.value(key)
 	if err != nil {
 		return map[string]string{}
 	}
@@ -306,14 +306,14 @@ func (c config) StringMap(key string) map[string]string {
 }
 
 // 利用 key 获取 值
-func (c *config) value(key string) (interface{}, error) {
-	filename, keys := c.parseKey(key)
+func (config) value(key string) (interface{}, error) {
+	filename, keys := instance.parseKey(key)
 	if data, exists := instance.contents[filename]; !exists {
 		var (
 			content = []byte{}
 			err     error
 		)
-		if content, err = c.getContent(filename); err != nil {
+		if content, err = instance.getContent(filename); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -321,7 +321,7 @@ func (c *config) value(key string) (interface{}, error) {
 			log.Println(err)
 			return nil, err
 		}
-		c.contents[filename] = data
+		instance.contents[filename] = data
 	}
 
 	// 解析
