@@ -3,37 +3,63 @@ package logm
 import (
 	"testing"
 )
-
-//func TestInstance(t *testing.T) {
-//	i1 := Inst()
-//	i2 := Inst()
-//	if i1 != i2 {
-//		t.Error("no singleton")
+//
+func TestNew(t *testing.T) {
+	//one := New()
+	//two := New()
+	//if one == two {
+	//	t.Error("new error")
+	//}
+	//ins := New(Option{
+	//	OutMode: File,
+	//	Path: "./logs",
+	//})
+	//ins.Info("some message")
+}
+//
+//func TestGet(t *testing.T) {
+//	one := Get()
+//	two := Get()
+//	if one != two {
+//		t.Error("get error")
 //	}
 //}
-
-//func TestLog_Info(t *testing.T) {
-//	i := Inst(Opt{
-//		Fmt: JSON,
-//		Caller: false,
-//		Mode: FILE,
-//	})
-//	i.Info("some message")
-//}
-
-//func BenchmarkInstance(b *testing.B) {
+//
+//func BenchmarkNew(b *testing.B) {
 //	for i := 0; i < b.N; i ++ {
-//		Inst()
+//		New()
+//	}
+//}
+//func BenchmarkGet(b *testing.B) {
+//	for i := 0; i < b.N; i ++ {
+//		Get()
 //	}
 //}
 
 func BenchmarkLog_Info(b *testing.B) {
-	ins := Inst(Opt{
-		Mode: FILE,
-		Path: "./logs",
-		Filename: "app-%y-%m",
-	})
+	//ins := Get(Option{
+	//	OutMode: File,
+	//	Path: "./logs",
+	//})
+	//ins := Get(Option{
+	//	OutMode: FilePerHour,
+	//	Path: "./logs",
+	//})
+	//ins := Get(Option{
+	//	OutMode: FilePerWeek,
+	//	Path: "./logs",
+	//})
+
 	for i := 0; i < b.N; i ++ {
+		ins := Get(Option{
+			OutMode: FilePerSize,
+			SizeMax: 0.5*1024*1024,
+			Path: "./logs",
+		})
+		//ins := Get(Option{
+		//	OutMode: FilePerWeek,
+		//	Path: "./logs",
+		//})
 		ins.Info("some message")
 	}
 }

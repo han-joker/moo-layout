@@ -5,8 +5,8 @@ import (
 )
 
 func TestInstance(t *testing.T) {
-	m1 := Instance()
-	m2 := Instance()
+	m1 := Get()
+	m2 := Get()
 	if m1 != m2 {
 		t.Error("no singleton")
 	}
@@ -14,6 +14,7 @@ func TestInstance(t *testing.T) {
 
 func BenchmarkInstance(b *testing.B) {
 	for i := 0; i < b.N; i ++ {
-		Instance()
+		//New()
+		Get()
 	}
 }

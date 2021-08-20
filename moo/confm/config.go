@@ -9,66 +9,84 @@ import (
 	"strings"
 )
 
-//类型定义
-//配置
+//变量
+//实例池
+var pool = map[string]*config{}
+
+//默认选项值
+var optionDefault = Option{
+	Path: "./configs/",
+	Ext:  ".yml",
+	Sep:  ".",
+}
+
+//类型
+//配置内容
+type contents = map[string]map[string]interface{}
 type config struct {
-	//选项
-	options
+	option Option
 	//配置文件内容解码缓存
 	contents
 }
+type Option struct {
+	Name string
 
-//配置内容
-type contents = map[string]map[string]interface{}
-
-//配置选项
-type options struct {
-	path string
-	ext  string
-	sep  string
+	Path string
+	Ext  string
+	Sep  string
 }
 
-//变量
-//config 单例对象
-var instance *config
-
-//默认选项值
-var defaultOptions = options{
-	path: "./configs/",
-	ext:  ".yml",
-	sep:  ".",
+// New 创建对象
+func New(option ...Option) *config {
+	verifiedOption := optionVerify(option...)
+	return create(verifiedOption)
 }
 
-//常量
+// Get 存在直接返回，否则创建、存储再返回
+func Get(option ...Option) *config {
+	verifiedOption := optionVerify(option...)
+	if !Has(verifiedOption.Name) {
+		pool[verifiedOption.Name] = create(verifiedOption)
+	}
+	return pool[verifiedOption.Name]
+}
+
+// Has 存在返回 true，否则返回 false
+func Has(name string) bool {
+	_, has := pool[name]
+	return has
+}
+
+func create(option Option) *config {
+	return &config{
+		option: option,
+	}
+}
+func optionVerify(option ...Option) Option {
+	opt := optionDefault
+	if len(option) > 0 {
+		opt.Name = option[0].Name
+		if option[0].Path != "" {
+			opt.Path = option[0].Path
+		}
+		if option[0].Ext != "" {
+			opt.Ext = option[0].Ext
+			if !strings.HasPrefix(opt.Ext, ".") {
+				opt.Ext = "." + opt.Ext
+			}
+		}
+		if option[0].Sep != "" {
+			opt.Sep = option[0].Sep
+		}
+	}
+	return opt
+}
 
 //可导出包方法
 
-// Instance 配置对象单例工厂
-func Instance(options ...string) *config {
-	if instance == nil {
-		//创建实例
-		instance = &config{
-			contents: contents{},
-			options: defaultOptions,
-		}
-		//配置选项
-		for i, v := range options {
-			switch i {
-			case 0:
-				instance.options.path = v
-			case 1:
-				instance.options.ext = v
-			case 2:
-				instance.options.sep = v
-			}
-		}
-	}
-	return instance
-}
-
 // Bool Getter|Setter
-func (config) Bool(key string) bool {
-	valueIf, err := instance.value(key)
+func (c config) Bool(key string) bool {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return false
 	}
@@ -79,16 +97,16 @@ func (config) Bool(key string) bool {
 	return value
 }
 
-func (config) String(key string) string {
-	valueIf, err := instance.value(key)
+func (c config) String(key string) string {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return ""
 	}
 	return assertString(valueIf)
 }
 
-func (config) Int(key string) int {
-	valueIf, err := instance.value(key)
+func (c config) Int(key string) int {
+	valueIf, err := c.value(key)
 	if err != nil {
 		log.Println(err)
 		return 0
@@ -100,24 +118,24 @@ func (config) Int(key string) int {
 	return value
 }
 
-func (config) Float64(key string) float64 {
-	valueIf, err := instance.value(key)
+func (c config) Float64(key string) float64 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return 0
 	}
 	return assertFloat64(valueIf)
 }
 
-func (config) Float32(key string) float32 {
-	valueIf, err := instance.value(key)
+func (c config) Float32(key string) float32 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return 0
 	}
 	return assertFloat32(valueIf)
 }
 
-func (config) BoolSlice(key string) []bool {
-	valueIf, err := instance.value(key)
+func (c config) BoolSlice(key string) []bool {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return []bool{}
 	}
@@ -136,8 +154,8 @@ func (config) BoolSlice(key string) []bool {
 	return value
 }
 
-func (config) IntSlice(key string) []int {
-	valueIf, err := instance.value(key)
+func (c config) IntSlice(key string) []int {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return []int{}
 	}
@@ -156,8 +174,8 @@ func (config) IntSlice(key string) []int {
 	return value
 }
 
-func (config) StringSlice(key string) []string {
-	valueIf, err := instance.value(key)
+func (c config) StringSlice(key string) []string {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return []string{}
 	}
@@ -173,8 +191,8 @@ func (config) StringSlice(key string) []string {
 	return value
 }
 
-func (config) Float64Slice(key string) []float64 {
-	valueIf, err := instance.value(key)
+func (c config) Float64Slice(key string) []float64 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return []float64{}
 	}
@@ -190,8 +208,8 @@ func (config) Float64Slice(key string) []float64 {
 	return value
 }
 
-func (config) Float32Slice(key string) []float32 {
-	valueIf, err := instance.value(key)
+func (c config) Float32Slice(key string) []float32 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return []float32{}
 	}
@@ -208,8 +226,8 @@ func (config) Float32Slice(key string) []float32 {
 	return value
 }
 
-func (config) BoolMap(key string) map[string]bool {
-	valueIf, err := instance.value(key)
+func (c config) BoolMap(key string) map[string]bool {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return map[string]bool{}
 	}
@@ -229,8 +247,8 @@ func (config) BoolMap(key string) map[string]bool {
 	return value
 }
 
-func (config) IntMap(key string) map[string]int {
-	valueIf, err := instance.value(key)
+func (c config) IntMap(key string) map[string]int {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return map[string]int{}
 	}
@@ -250,8 +268,8 @@ func (config) IntMap(key string) map[string]int {
 	return value
 }
 
-func (config) Float64Map(key string) map[string]float64 {
-	valueIf, err := instance.value(key)
+func (c config) Float64Map(key string) map[string]float64 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return map[string]float64{}
 	}
@@ -268,8 +286,8 @@ func (config) Float64Map(key string) map[string]float64 {
 	return value
 }
 
-func (config) Float32Map(key string) map[string]float32 {
-	valueIf, err := instance.value(key)
+func (c config) Float32Map(key string) map[string]float32 {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return map[string]float32{}
 	}
@@ -286,8 +304,8 @@ func (config) Float32Map(key string) map[string]float32 {
 	return value
 }
 
-func (config) StringMap(key string) map[string]string {
-	valueIf, err := instance.value(key)
+func (c config) StringMap(key string) map[string]string {
+	valueIf, err := c.value(key)
 	if err != nil {
 		return map[string]string{}
 	}
@@ -306,14 +324,14 @@ func (config) StringMap(key string) map[string]string {
 //非导出方法
 
 //利用 key 获取 值
-func (config) value(key string) (interface{}, error) {
-	filename, keys := instance.parseKey(key)
-	if data, exists := instance.contents[filename]; !exists {
+func (c config) value(key string) (interface{}, error) {
+	filename, keys := c.parseKey(key)
+	if data, exists := c.contents[filename]; !exists {
 		var (
 			content = []byte{}
 			err     error
 		)
-		if content, err = instance.getContent(filename); err != nil {
+		if content, err = c.getContent(filename); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -321,11 +339,11 @@ func (config) value(key string) (interface{}, error) {
 			log.Println(err)
 			return nil, err
 		}
-		instance.contents[filename] = data
+		c.contents[filename] = data
 	}
 
 	//解析
-	for i, l, currLevel := 0, len(keys), instance.contents[filename]; i < l; i++ {
+	for i, l, currLevel := 0, len(keys), c.contents[filename]; i < l; i++ {
 		//最后一级 key
 		if i == l-1 {
 			if value, exists := currLevel[keys[i]]; exists {
@@ -346,8 +364,8 @@ func (config) value(key string) (interface{}, error) {
 }
 
 //解析 key
-func (config) parseKey(key string) (string, []string) {
-	strs := strings.Split(key, instance.options.sep)
+func (c config) parseKey(key string) (string, []string) {
+	strs := strings.Split(key, c.option.Sep)
 	if len(strs) == 1 {
 		strs = append([]string{"app"}, strs...)
 	}
@@ -355,8 +373,8 @@ func (config) parseKey(key string) (string, []string) {
 }
 
 //读取配置文件
-func (config) getContent(filename string) ([]byte, error) {
-	return os.ReadFile(instance.options.path + filename + instance.options.ext)
+func (c config) getContent(filename string) ([]byte, error) {
+	return os.ReadFile(c.option.Path + filename + c.option.Ext)
 }
 
 //断言 Interface{} to string
