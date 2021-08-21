@@ -65,7 +65,7 @@ type log struct {
 	writers map[string]*os.File
 }
 
-//选项
+// Option 选项
 type Option struct {
 	Name string
 
@@ -77,6 +77,33 @@ type Option struct {
 	SizeMax    int64
 	Output     io.Writer
 }
+
+type Fields = logrus.Fields
+
+// New 创建对象
+func New(option ...Option) *log {
+	verifiedOption := optionVerify(option...)
+	l := create(verifiedOption)
+	l.refreshOutMode()
+	return l
+}
+
+// Get 存在直接返回，否则创建、存储再返回
+func Get(option ...Option) *log {
+	verifiedOption := optionVerify(option...)
+	if !Has(verifiedOption.Name) {
+		pool[verifiedOption.Name] = create(verifiedOption)
+	}
+	pool[verifiedOption.Name].refreshOutMode()
+	return pool[verifiedOption.Name]
+}
+
+// Has 存在返回 true，否则返回 false
+func Has(name string) bool {
+	_, has := pool[name]
+	return has
+}
+
 
 func (l *log) syncLoggerOption() *log {
 	switch l.option.Fmt {
@@ -141,13 +168,15 @@ func (l *log) refreshOutMode() *log {
 				now := time.Now()
 				newFilename := l.option.Path + "/" +
 					l.option.FilePrefix +
-					fmt.Sprintf("%s", now.Format("2006-01-02-15-04-05-00000000")) +
+					fmt.Sprintf("%s", now.Format("2006-01-02-15-04-05")) +
 					fileExt
 				if err := os.Rename(filename, newFilename); err != nil {
 					l.Info("can not rename log file")
 				}
 			}
 		}
+	case User:
+		l.Logger.SetOutput(l.option.Output)
 	default:
 		l.Logger.SetOutput(optionDefault.Output)
 	}
@@ -175,31 +204,6 @@ func (l *log) refreshOutMode() *log {
 
 	return l
 }
-
-// New 创建对象
-func New(option ...Option) *log {
-	verifiedOption := optionVerify(option...)
-	l := create(verifiedOption)
-	l.refreshOutMode()
-	return l
-}
-
-// Get 存在直接返回，否则创建、存储再返回
-func Get(option ...Option) *log {
-	verifiedOption := optionVerify(option...)
-	if !Has(verifiedOption.Name) {
-		pool[verifiedOption.Name] = create(verifiedOption)
-	}
-	pool[verifiedOption.Name].refreshOutMode()
-	return pool[verifiedOption.Name]
-}
-
-// Has 存在返回 true，否则返回 false
-func Has(name string) bool {
-	_, has := pool[name]
-	return has
-}
-
 func create(option Option) *log {
 	return (&log{
 		Logger:  logrus.New(),
